@@ -5,12 +5,20 @@ import { Header } from "./components/Header";
 
 export default function App() {
   const [now, setNow] = useState([]);
+  const [popular, setPopular] = useState([]);
+  const [topRated, setTopRated] = useState([]);
 
   async function loadMovie() {
-    const res1 = await api.get(`now_playing`);
-    const data = res1.data.results;
-    setNow(data);
+    const [res1, res2, res3] = await Promise.all([
+      api.get("now_playing"),
+      api.get("popular"),
+      api.get("top_rated"),
+    ]);
+    setNow(res1.data.results);
+    setPopular(res2.data.results);
+    setTopRated(res3.data.results);
   }
+
   useEffect(() => {
     loadMovie();
   }, []);
@@ -18,7 +26,7 @@ export default function App() {
   return (
     <>
       <Header />
-      <Outlet context={{ now }} />
+      <Outlet context={{ now, popular, topRated }} />
     </>
   );
 }

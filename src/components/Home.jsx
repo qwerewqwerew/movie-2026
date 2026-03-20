@@ -1,12 +1,14 @@
-import { useOutletContext, Link } from "react-router";
+import { useOutletContext } from "react-router";
 import { Section } from "./Section.jsx";
 export function Home() {
-  const { now } = useOutletContext();
+  const { now, popular, topRated } = useOutletContext();
 
   return (
     <>
       <VideoHero />
-      <Section title="현재 상영작" items={now}/>
+      <Section title="현재 상영작" items={now} />
+      <Section title="인기 영화" items={popular} />
+      <Section title="최고 평점" items={topRated} />
     </>
   );
 }

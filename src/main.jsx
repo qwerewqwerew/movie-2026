@@ -5,6 +5,7 @@ import "./index.css";
 import App from "./App.jsx";
 import { Home } from "./components/Home.jsx";
 import { MovieDetail } from "./components/MovieDetail.jsx";
+import { Search } from "./components/Search.jsx";
 
 // 리액트는 컴포넌트간의 연결을 하기위한 라우터 설정과정이 필요함
 import { createBrowserRouter, RouterProvider } from "react-router";
@@ -16,11 +17,15 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element:<Home />,
+        element: <Home />,
       },
       {
         path: "movie/:id",
         element: <MovieDetail />,
+      },
+      {
+        path: "search",
+        element: <Search />,
       },
     ],
   },
