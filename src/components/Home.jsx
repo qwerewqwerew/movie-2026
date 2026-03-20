@@ -16,9 +16,9 @@ export function Home() {
         </>
       ) : (
         <>
-          <Section title="현재 상영작" items={now} />
-          <Section title="인기 영화" items={popular} />
-          <Section title="최고 평점" items={topRated} />
+          <Section title="현재 상영작" items={now} category="now_playing" />
+          <Section title="인기 영화" items={popular} category="popular" />
+          <Section title="최고 평점" items={topRated} category="top_rated" />
         </>
       )}
     </>

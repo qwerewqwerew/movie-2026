@@ -7,6 +7,7 @@ import { Home } from "./components/Home.jsx";
 import { MovieDetail } from "./components/MovieDetail.jsx";
 import { Search } from "./components/Search.jsx";
 import { Favorites } from "./components/Favorites.jsx";
+import { Category } from "./components/Category.jsx";
 
 // 리액트는 컴포넌트간의 연결을 하기위한 라우터 설정과정이 필요함
 import { createBrowserRouter, RouterProvider } from "react-router";
@@ -31,6 +32,10 @@ const router = createBrowserRouter([
       {
         path: "favorites",
         element: <Favorites />,
+      },
+      {
+        path: "category/:type",
+        element: <Category />,
       },
     ],
   },

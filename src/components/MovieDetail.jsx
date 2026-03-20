@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faHeart as faHeartSolid } from "@fortawesome/free-solid-svg-icons";
+import { faArrowLeft, faHeart as faHeartSolid, faPlay, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
 import api from "../api/axios";
 
@@ -28,12 +28,21 @@ export function MovieDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [isFav, setIsFav] = useState(false);
+  const [trailerKey, setTrailerKey] = useState(null);
+  const [showTrailer, setShowTrailer] = useState(false);
 
   async function loadMovieDetail() {
     try {
-      const res = await api.get(id);
+      const [res, videosRes] = await Promise.all([
+        api.get(id),
+        api.get(`${id}/videos`),
+      ]);
       setMovie(res.data);
       setIsFav(getFavorites().some((f) => f.id === res.data.id));
+      const trailer = videosRes.data.results.find(
+        (v) => v.type === "Trailer" && v.site === "YouTube"
+      );
+      if (trailer) setTrailerKey(trailer.key);
     } catch (e) {
       setError(true);
     } finally {
@@ -127,10 +136,41 @@ export function MovieDetail() {
             </div>
 
             <p className="text-gray-300 leading-relaxed max-w-xl">{movie.overview}</p>
+
+            {trailerKey && (
+              <button
+                onClick={() => setShowTrailer(true)}
+                className="mt-2 bg-red-600 hover:bg-red-500 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 w-fit transition-colors"
+              >
+                <FontAwesomeIcon icon={faPlay} />
+                예고편 보기
+              </button>
+            )}
           </div>
           </div>
         </div>
       </div>
+
+      {/* 트레일러 모달 */}
+      {showTrailer && trailerKey && (
+        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
+          <div className="relative w-full max-w-4xl aspect-video">
+            <button
+              onClick={() => setShowTrailer(false)}
+              className="absolute -top-10 right-0 text-white text-2xl hover:text-yellow-400"
+            >
+              <FontAwesomeIcon icon={faXmark} />
+            </button>
+            <iframe
+              className="w-full h-full rounded-lg"
+              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1`}
+              title="Trailer"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
