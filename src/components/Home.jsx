@@ -1,14 +1,26 @@
 import { useOutletContext } from "react-router";
 import { Section } from "./Section.jsx";
+import { SkeletonSection } from "./Skeleton.jsx";
+
 export function Home() {
-  const { now, popular, topRated } = useOutletContext();
+  const { now, popular, topRated, loading } = useOutletContext();
 
   return (
     <>
       <VideoHero />
-      <Section title="현재 상영작" items={now} />
-      <Section title="인기 영화" items={popular} />
-      <Section title="최고 평점" items={topRated} />
+      {loading ? (
+        <>
+          <SkeletonSection />
+          <SkeletonSection />
+          <SkeletonSection />
+        </>
+      ) : (
+        <>
+          <Section title="현재 상영작" items={now} />
+          <Section title="인기 영화" items={popular} />
+          <Section title="최고 평점" items={topRated} />
+        </>
+      )}
     </>
   );
 }

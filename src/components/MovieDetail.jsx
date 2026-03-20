@@ -1,17 +1,39 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router";
+import { useParams, useNavigate } from "react-router";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faArrowLeft, faHeart as faHeartSolid } from "@fortawesome/free-solid-svg-icons";
+import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
 import api from "../api/axios";
+
+function getFavorites() {
+  try {
+    return JSON.parse(localStorage.getItem("favorites") || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function toggleFavorite(movie) {
+  const favs = getFavorites();
+  const exists = favs.some((f) => f.id === movie.id);
+  const next = exists ? favs.filter((f) => f.id !== movie.id) : [...favs, { id: movie.id, title: movie.title, poster_path: movie.poster_path }];
+  localStorage.setItem("favorites", JSON.stringify(next));
+  return !exists;
+}
 
 export function MovieDetail() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [isFav, setIsFav] = useState(false);
 
   async function loadMovieDetail() {
     try {
       const res = await api.get(id);
       setMovie(res.data);
+      setIsFav(getFavorites().some((f) => f.id === res.data.id));
     } catch (e) {
       setError(true);
     } finally {
@@ -55,7 +77,16 @@ export function MovieDetail() {
       )}
 
       <div className="relative pt-24 pb-16">
-        <div className="container mx-auto px-6 flex flex-col md:flex-row gap-10">
+        <div className="container mx-auto px-6">
+          <button
+            onClick={() => navigate(-1)}
+            className="text-white hover:text-yellow-400 mb-6 inline-flex items-center gap-2"
+          >
+            <FontAwesomeIcon icon={faArrowLeft} />
+            <span>뒤로가기</span>
+          </button>
+
+          <div className="flex flex-col md:flex-row gap-10">
           <img
             src={`https://image.tmdb.org/t/p/w500/${movie.poster_path}`}
             alt={movie.title}
@@ -63,7 +94,18 @@ export function MovieDetail() {
           />
 
           <div className="flex flex-col gap-4 text-white">
-            <h1 className="text-4xl font-bold text-yellow-400">{movie.title}</h1>
+            <div className="flex items-center gap-4">
+              <h1 className="text-4xl font-bold text-yellow-400">{movie.title}</h1>
+              <button
+                onClick={() => setIsFav(toggleFavorite(movie))}
+                className="text-2xl hover:scale-110 transition-transform"
+              >
+                <FontAwesomeIcon
+                  icon={isFav ? faHeartSolid : faHeartRegular}
+                  className={isFav ? "text-red-500" : "text-gray-400"}
+                />
+              </button>
+            </div>
             <p className="text-gray-400 text-lg">{movie.original_title}</p>
 
             <div className="flex gap-4 text-sm text-gray-300">
@@ -85,6 +127,7 @@ export function MovieDetail() {
             </div>
 
             <p className="text-gray-300 leading-relaxed max-w-xl">{movie.overview}</p>
+          </div>
           </div>
         </div>
       </div>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHouse, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
+import { faHouse, faMagnifyingGlass, faHeart } from "@fortawesome/free-solid-svg-icons";
 
 export function Header() {
   const [query, setQuery] = useState("");
@@ -35,6 +35,10 @@ export function Header() {
               <FontAwesomeIcon icon={faMagnifyingGlass} />
             </button>
           </form>
+
+          <Link to="/favorites" className="text-white hover:text-red-400">
+            <FontAwesomeIcon icon={faHeart} className="text-xl" />
+          </Link>
 
           <Link to="/" className="text-white hover:text-yellow-400">
             <FontAwesomeIcon icon={faHouse} className="text-xl" />
