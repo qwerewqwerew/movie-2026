@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faHeart as faHeartSolid, faPlay, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
+import { Link } from "react-router";
 import api from "../api/axios";
 
 function getFavorites() {
@@ -30,12 +31,16 @@ export function MovieDetail() {
   const [isFav, setIsFav] = useState(false);
   const [trailerKey, setTrailerKey] = useState(null);
   const [showTrailer, setShowTrailer] = useState(false);
+  const [cast, setCast] = useState([]);
+  const [similar, setSimilar] = useState([]);
 
   async function loadMovieDetail() {
     try {
-      const [res, videosRes] = await Promise.all([
+      const [res, videosRes, creditsRes, similarRes] = await Promise.all([
         api.get(id),
         api.get(`${id}/videos`),
+        api.get(`${id}/credits`),
+        api.get(`${id}/similar`),
       ]);
       setMovie(res.data);
       setIsFav(getFavorites().some((f) => f.id === res.data.id));
@@ -43,6 +48,8 @@ export function MovieDetail() {
         (v) => v.type === "Trailer" && v.site === "YouTube"
       );
       if (trailer) setTrailerKey(trailer.key);
+      setCast(creditsRes.data.cast.slice(0, 8));
+      setSimilar(similarRes.data.results.slice(0, 4));
     } catch (e) {
       setError(true);
     } finally {
@@ -150,6 +157,60 @@ export function MovieDetail() {
           </div>
         </div>
       </div>
+
+      {/* 출연진 */}
+      {cast.length > 0 && (
+        <div className="relative bg-black/60 py-12">
+          <div className="container mx-auto px-6">
+            <h2 className="text-2xl font-bold text-white mb-6">출연진</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
+              {cast.map((actor) => (
+                <div key={actor.id} className="text-center">
+                  <img
+                    src={
+                      actor.profile_path
+                        ? `https://image.tmdb.org/t/p/w185/${actor.profile_path}`
+                        : "https://via.placeholder.com/185x278?text=No+Photo"
+                    }
+                    alt={actor.name}
+                    className="w-full aspect-[2/3] object-cover rounded-lg"
+                  />
+                  <p className="text-white text-sm font-bold mt-2 truncate">{actor.name}</p>
+                  <p className="text-gray-400 text-xs truncate">{actor.character}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 비슷한 영화 */}
+      {similar.length > 0 && (
+        <div className="relative bg-black py-12">
+          <div className="container mx-auto px-6">
+            <h2 className="text-2xl font-bold text-white mb-6">비슷한 영화</h2>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+              {similar.map((m) => (
+                <Link key={m.id} to={`/movie/${m.id}`} className="group">
+                  <div className="overflow-hidden rounded-md">
+                    <img
+                      src={
+                        m.poster_path
+                          ? `https://image.tmdb.org/t/p/w500/${m.poster_path}`
+                          : "https://via.placeholder.com/500x750?text=No+Image"
+                      }
+                      alt={m.title}
+                      className="w-full aspect-[2/3] object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  </div>
+                  <p className="text-white font-bold mt-2 truncate">{m.title}</p>
+                  <p className="text-yellow-400 text-sm">★ {m.vote_average?.toFixed(1)}</p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 트레일러 모달 */}
       {showTrailer && trailerKey && (
