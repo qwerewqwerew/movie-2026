@@ -8,9 +8,11 @@ export function Section({ title, items, category }) {
   // GSAP ScrollTrigger로 카드가 스크롤 시 나타나는 효과
   useEffect(() => {
     if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") return;
+    if (!gridRef.current || items.length === 0) return;
+
     gsap.registerPlugin(ScrollTrigger);
 
-    gsap.from(gridRef.current.children, {
+    const anim = gsap.from(gridRef.current.children, {
       opacity: 0,
       y: 40,
       duration: 0.5,
@@ -20,6 +22,12 @@ export function Section({ title, items, category }) {
         start: "top 85%",
       },
     });
+
+    // 페이지 이동 시 애니메이션 정리 (메모리 누수 방지)
+    return () => {
+      anim.scrollTrigger?.kill();
+      anim.kill();
+    };
   }, [items]);
 
   return (

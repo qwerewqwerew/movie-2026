@@ -4,6 +4,9 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faPlay, faXmark } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axios";
 
+const FALLBACK_POSTER = "https://via.placeholder.com/500x750?text=No+Image";
+const FALLBACK_PHOTO = "https://via.placeholder.com/185x278?text=No+Photo";
+
 export function MovieDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -20,6 +23,7 @@ export function MovieDetail() {
   // append_to_response를 쓰면 API 1번으로 영화+영상+출연진+비슷한영화를 한꺼번에 받아옴
   useEffect(() => {
     setLoading(true);
+    setShowTrailer(false);
     api
       .get(`movie/${id}`, {
         params: { append_to_response: "videos,credits,similar" },
@@ -33,25 +37,39 @@ export function MovieDetail() {
   useEffect(() => {
     if (!movie || typeof gsap === "undefined") return;
 
-    gsap.from(infoRef.current, {
-      opacity: 0,
-      y: 50,
-      duration: 0.8,
-    });
+    const anims = [];
 
+    // 영화 정보 영역 페이드인
+    if (infoRef.current) {
+      anims.push(
+        gsap.from(infoRef.current, { opacity: 0, y: 50, duration: 0.8 })
+      );
+    }
+
+    // 출연진 영역 스크롤 트리거
     if (castRef.current && typeof ScrollTrigger !== "undefined") {
       gsap.registerPlugin(ScrollTrigger);
-      gsap.from(castRef.current.children, {
-        opacity: 0,
-        y: 30,
-        duration: 0.5,
-        stagger: 0.1,
-        scrollTrigger: {
-          trigger: castRef.current,
-          start: "top 80%",
-        },
-      });
+      anims.push(
+        gsap.from(castRef.current.children, {
+          opacity: 0,
+          y: 30,
+          duration: 0.5,
+          stagger: 0.1,
+          scrollTrigger: {
+            trigger: castRef.current,
+            start: "top 80%",
+          },
+        })
+      );
     }
+
+    // 페이지 이동 시 애니메이션 정리
+    return () => {
+      anims.forEach((a) => {
+        a.scrollTrigger?.kill();
+        a.kill();
+      });
+    };
   }, [movie]);
 
   // --- 로딩 / 에러 화면 ---
@@ -76,6 +94,10 @@ export function MovieDetail() {
     ? `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`
     : null;
 
+  const poster = movie.poster_path
+    ? `https://image.tmdb.org/t/p/w500/${movie.poster_path}`
+    : FALLBACK_POSTER;
+
   // 유튜브 예고편 찾기
   const trailer = movie.videos?.results?.find(
     (v) => v.type === "Trailer" && v.site === "YouTube"
@@ -86,6 +108,9 @@ export function MovieDetail() {
 
   // 비슷한 영화 4개만
   const similar = movie.similar?.results?.slice(0, 4) || [];
+
+  // 장르 (없으면 빈 배열)
+  const genres = movie.genres || [];
 
   return (
     <div className="bg-black min-h-screen relative">
@@ -112,7 +137,7 @@ export function MovieDetail() {
 
           <div ref={infoRef} className="flex flex-col md:flex-row gap-10">
             <img
-              src={`https://image.tmdb.org/t/p/w500/${movie.poster_path}`}
+              src={poster}
               alt={movie.title}
               className="w-full md:w-72 rounded-lg object-cover shadow-2xl"
             />
@@ -122,12 +147,12 @@ export function MovieDetail() {
               <p className="text-gray-400 text-lg">{movie.original_title}</p>
 
               <div className="flex gap-4 text-sm text-gray-300">
-                <span>개봉일: {movie.release_date}</span>
-                <span>러닝타임: {movie.runtime}분</span>
+                <span>개봉일: {movie.release_date || "미정"}</span>
+                <span>러닝타임: {movie.runtime || 0}분</span>
               </div>
 
               <div className="flex gap-2 flex-wrap">
-                {movie.genres.map((genre) => (
+                {genres.map((genre) => (
                   <span key={genre.id} className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
                     {genre.name}
                   </span>
@@ -135,11 +160,17 @@ export function MovieDetail() {
               </div>
 
               <div className="flex items-center gap-2">
-                <span className="text-yellow-400 text-xl font-bold">★ {movie.vote_average.toFixed(1)}</span>
-                <span className="text-gray-400">({movie.vote_count.toLocaleString()}명 평가)</span>
+                <span className="text-yellow-400 text-xl font-bold">
+                  ★ {(movie.vote_average || 0).toFixed(1)}
+                </span>
+                <span className="text-gray-400">
+                  ({(movie.vote_count || 0).toLocaleString()}명 평가)
+                </span>
               </div>
 
-              <p className="text-gray-300 leading-relaxed max-w-xl">{movie.overview}</p>
+              <p className="text-gray-300 leading-relaxed max-w-xl">
+                {movie.overview || "줄거리 정보가 없습니다."}
+              </p>
 
               {/* 예고편 버튼 */}
               {trailer && (
@@ -165,11 +196,7 @@ export function MovieDetail() {
               {cast.map((actor) => (
                 <div key={actor.id} className="text-center">
                   <img
-                    src={
-                      actor.profile_path
-                        ? `https://image.tmdb.org/t/p/w185/${actor.profile_path}`
-                        : "https://via.placeholder.com/185x278?text=No+Photo"
-                    }
+                    src={actor.profile_path ? `https://image.tmdb.org/t/p/w185/${actor.profile_path}` : FALLBACK_PHOTO}
                     alt={actor.name}
                     className="w-full aspect-[2/3] object-cover rounded-lg"
                   />
@@ -192,17 +219,13 @@ export function MovieDetail() {
                 <Link key={m.id} to={`/movie/${m.id}`} className="group">
                   <div className="overflow-hidden rounded-md">
                     <img
-                      src={
-                        m.poster_path
-                          ? `https://image.tmdb.org/t/p/w500/${m.poster_path}`
-                          : "https://via.placeholder.com/500x750?text=No+Image"
-                      }
+                      src={m.poster_path ? `https://image.tmdb.org/t/p/w500/${m.poster_path}` : FALLBACK_POSTER}
                       alt={m.title}
                       className="w-full aspect-[2/3] object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   </div>
                   <p className="text-white font-bold mt-2 truncate">{m.title}</p>
-                  <p className="text-yellow-400 text-sm">★ {m.vote_average?.toFixed(1)}</p>
+                  <p className="text-yellow-400 text-sm">★ {(m.vote_average || 0).toFixed(1)}</p>
                 </Link>
               ))}
             </div>

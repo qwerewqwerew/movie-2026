@@ -27,7 +27,10 @@ function Search() {
 
   // 검색어가 바뀔 때마다 API 호출
   useEffect(() => {
-    if (!query) return;
+    if (!query) {
+      setResults([]);
+      return;
+    }
     setLoading(true);
     api
       .get("search/movie", { params: { query } })
@@ -45,8 +48,12 @@ function Search() {
 
         {loading && <p className="text-white text-xl">검색 중...</p>}
 
-        {!loading && results.length === 0 && (
+        {!loading && query && results.length === 0 && (
           <p className="text-gray-400 text-xl">검색 결과가 없습니다.</p>
+        )}
+
+        {!loading && !query && (
+          <p className="text-gray-400 text-xl">검색어를 입력해 주세요.</p>
         )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
@@ -75,7 +82,8 @@ function Category() {
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // 카테고리나 페이지가 바뀌면 API 호출
+  // 카테고리가 바뀌면 1페이지로 초기화 + 데이터 불러오기
+  // page가 바뀌어도 데이터 불러오기
   useEffect(() => {
     setLoading(true);
     api
@@ -87,7 +95,7 @@ function Category() {
       .finally(() => setLoading(false));
   }, [type, page]);
 
-  // 카테고리가 바뀌면 1페이지로 초기화
+  // 카테고리가 바뀌면 1페이지로 초기화 (page가 이미 1이면 위 effect만 실행)
   useEffect(() => {
     setPage(1);
   }, [type]);

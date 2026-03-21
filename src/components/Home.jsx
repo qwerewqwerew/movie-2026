@@ -1,14 +1,17 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useOutletContext, Link } from "react-router";
 import { Section } from "./Section.jsx";
 
 export function Home() {
   const { now, popular, topRated, loading } = useOutletContext();
 
-  // 인기영화 중 랜덤 1개를 히어로에 표시
-  const hero = popular.length > 0
-    ? popular[Math.floor(Math.random() * Math.min(5, popular.length))]
-    : null;
+  // 인기영화 중 랜덤 1개를 히어로에 표시 (최초 1회만 선택)
+  const [hero, setHero] = useState(null);
+  useEffect(() => {
+    if (popular.length > 0 && !hero) {
+      setHero(popular[Math.floor(Math.random() * Math.min(5, popular.length))]);
+    }
+  }, [popular]);
 
   return (
     <>
@@ -41,19 +44,24 @@ function VideoHero({ movie }) {
   useEffect(() => {
     if (typeof gsap === "undefined") return;
 
-    gsap.from(titleRef.current, {
+    const a1 = gsap.from(titleRef.current, {
       opacity: 0,
       y: -50,
       duration: 1,
       delay: 0.3,
     });
 
-    gsap.from(textRef.current, {
+    const a2 = gsap.from(textRef.current, {
       opacity: 0,
       y: 30,
       duration: 1,
       delay: 0.6,
     });
+
+    return () => {
+      a1.kill();
+      a2.kill();
+    };
   }, []);
 
   return (
