@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faHouse, faMagnifyingGlass, faHeart, faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
+import { faHouse, faMagnifyingGlass, faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
 
+// Header — 상단 네비게이션 바
 export function Header() {
   const [query, setQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  // 스크롤 위치에 따라 헤더 배경 변경
   useEffect(() => {
     function handleScroll() {
       setScrolled(window.scrollY > 50);
@@ -17,6 +19,7 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // 검색 폼 제출
   function handleSearch(e) {
     e.preventDefault();
     const trimmed = query.trim();
@@ -37,7 +40,7 @@ export function Header() {
           <span className="text-2xl font-bold text-yellow-400">GOFLEX</span>
         </Link>
 
-        {/* 모바일 햄버거 */}
+        {/* 모바일 햄버거 버튼 */}
         <button
           className="md:hidden text-white text-xl"
           onClick={() => setMenuOpen(!menuOpen)}
@@ -59,10 +62,6 @@ export function Header() {
               <FontAwesomeIcon icon={faMagnifyingGlass} />
             </button>
           </form>
-
-          <Link to="/favorites" className="text-white hover:text-red-400">
-            <FontAwesomeIcon icon={faHeart} className="text-xl" />
-          </Link>
 
           <Link to="/" className="text-white hover:text-yellow-400">
             <FontAwesomeIcon icon={faHouse} className="text-xl" />
@@ -86,14 +85,9 @@ export function Header() {
             </button>
           </form>
 
-          <div className="flex gap-6">
-            <Link to="/" onClick={() => setMenuOpen(false)} className="text-white hover:text-yellow-400 flex items-center gap-2">
-              <FontAwesomeIcon icon={faHouse} /> 홈
-            </Link>
-            <Link to="/favorites" onClick={() => setMenuOpen(false)} className="text-white hover:text-red-400 flex items-center gap-2">
-              <FontAwesomeIcon icon={faHeart} /> 즐겨찾기
-            </Link>
-          </div>
+          <Link to="/" onClick={() => setMenuOpen(false)} className="text-white hover:text-yellow-400 flex items-center gap-2">
+            <FontAwesomeIcon icon={faHouse} /> 홈
+          </Link>
         </div>
       )}
     </header>

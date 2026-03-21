@@ -1,7 +1,35 @@
+import { useEffect, useRef } from "react";
 import { Link } from "react-router";
 import { Card } from "./Card.jsx";
 
 export function Section({ title, items, category }) {
+  const gridRef = useRef(null);
+
+  // GSAP ScrollTrigger로 카드가 스크롤 시 나타나는 효과
+  useEffect(() => {
+    if (typeof gsap === "undefined" || typeof ScrollTrigger === "undefined") return;
+    if (!gridRef.current || items.length === 0) return;
+
+    gsap.registerPlugin(ScrollTrigger);
+
+    const anim = gsap.from(gridRef.current.children, {
+      opacity: 0,
+      y: 40,
+      duration: 0.5,
+      stagger: 0.1,
+      scrollTrigger: {
+        trigger: gridRef.current,
+        start: "top 85%",
+      },
+    });
+
+    // 페이지 이동 시 애니메이션 정리 (메모리 누수 방지)
+    return () => {
+      anim.scrollTrigger?.kill();
+      anim.kill();
+    };
+  }, [items]);
+
   return (
     <section className="bg-black px-11 py-24">
       <div className="container mx-auto">
@@ -16,7 +44,7 @@ export function Section({ title, items, category }) {
             </Link>
           )}
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+        <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
           {items.map((el) => (
             <Card key={el.id} item={el} />
           ))}

@@ -1,3 +1,4 @@
+// Footer — 하단 푸터
 export function Footer() {
   return (
     <footer className="bg-black border-t border-gray-800 py-8">

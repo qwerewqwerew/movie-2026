@@ -1,9 +1,14 @@
-import { Link } from "react-router";
+import { Link, useRouteError } from "react-router";
 
-export function NotFound() {
+// ErrorPage — 404 등 라우트 에러 처리 (react-router errorElement)
+export function ErrorPage() {
+  const error = useRouteError();
+
   return (
     <div className="bg-black min-h-screen flex flex-col items-center justify-center text-center px-6">
-      <h1 className="text-8xl font-bold text-yellow-400">404</h1>
+      <h1 className="text-8xl font-bold text-yellow-400">
+        {error?.status || "오류"}
+      </h1>
       <p className="text-white text-2xl mt-4">페이지를 찾을 수 없습니다</p>
       <p className="text-gray-400 mt-2">요청하신 페이지가 존재하지 않거나 이동되었습니다.</p>
       <Link
