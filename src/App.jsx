@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet } from "react-router";
-import { Header } from "./Header.jsx";
-import { Footer } from "./Footer.jsx";
+import { Header } from "./components/Header.jsx";
+import { Footer } from "./components/Footer.jsx";
 import api from "./api/axios";
 
 // App — 데이터를 불러와서 하위 페이지에 전달하는 레이아웃

@@ -6,7 +6,7 @@ import App from "./App.jsx";
 import { Home } from "./components/Home.jsx";
 import { MovieDetail } from "./components/MovieDetail.jsx";
 import { Card } from "./components/Card.jsx";
-import { ErrorPage } from "./ErrorPage.jsx";
+import { ErrorPage } from "./components/ErrorPage.jsx";
 import api from "./api/axios";
 
 import {
