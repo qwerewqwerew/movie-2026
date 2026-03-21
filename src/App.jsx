@@ -4,12 +4,10 @@ import { Header } from "./components/Header.jsx";
 import { Footer } from "./components/Footer.jsx";
 import api from "./api/axios";
 
-// App — 데이터를 불러와서 하위 페이지에 전달하는 레이아웃
 export default function App() {
-  const [now, setNow] = useState([]);
-  const [popular, setPopular] = useState([]);
-  const [topRated, setTopRated] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(null);
+  const [popular, setPopular] = useState(null);
+  const [topRated, setTopRated] = useState(null);
 
   // 영화 데이터 3가지를 동시에 불러오기
   async function loadMovie() {
@@ -22,21 +20,32 @@ export default function App() {
       setNow(res1.data.results);
       setPopular(res2.data.results);
       setTopRated(res3.data.results);
-    } catch (err) {
-      console.error("영화 데이터 로드 실패:", err);
     } finally {
       setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadMovie();
+    api.get("movie/now_playing").then((res) => {
+      setNow(res.data.results);
+    });
+
+    api.get("movie/popular").then((res) => {
+      setPopular(res.data.results);
+    });
+
+    api.get("movie/top_rated").then((res) => {
+      setTopRated(res.data.results);
+    });
   }, []);
+
+  // 3개 다 불러올 때까지 로딩
+  const loading = now === null || popular === null || topRated === null;
 
   return (
     <>
       <Header />
-      <Outlet context={{ now, popular, topRated, loading }} />
+      <Outlet context={{ now: now || [], popular: popular || [], topRated: topRated || [], loading }} />
       <Footer />
     </>
   );
