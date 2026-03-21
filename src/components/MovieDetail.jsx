@@ -59,28 +59,16 @@ export function MovieDetail() {
   }
 
   // 예고편 찾기
-  let trailer = null;
   const videoList = movie.videos ? movie.videos.results : [];
-  for (let i = 0; i < videoList.length; i++) {
-    if (videoList[i].type === "Trailer" && videoList[i].site === "YouTube") {
-      trailer = videoList[i];
-      break;
-    }
-  }
+  const trailer = videoList.find((v) => v.type === "Trailer" && v.site === "YouTube");
 
   // 출연진 8명
   const allCast = movie.credits ? movie.credits.cast : [];
-  const cast = [];
-  for (let i = 0; i < 8 && i < allCast.length; i++) {
-    cast.push(allCast[i]);
-  }
+  const cast = allCast.slice(0, 8);
 
   // 비슷한 영화 4개
   const allSimilar = movie.similar ? movie.similar.results : [];
-  const similar = [];
-  for (let i = 0; i < 4 && i < allSimilar.length; i++) {
-    similar.push(allSimilar[i]);
-  }
+  const similar = allSimilar.slice(0, 4);
 
   // 장르
   const genres = movie.genres || [];
