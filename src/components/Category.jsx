@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router";
 import { Card } from "./Card.jsx";
 import api from "../api/axios";
+import { Spinner, Container, Button } from "./UI.jsx";
 
 // 카테고리 이름 한글 변환
 const TITLES = {
@@ -20,14 +21,14 @@ export function Category() {
   // 영화 목록 불러오기
   useEffect(() => {
     api
-      .get("movie/" + type, { params: { page: page } })
+      .get(`movie/${type}`, { params: { page: page } })
       .then((res) => {
         let pages = res.data.total_pages;
         if (pages > 20) {
           pages = 20;
         }
         setTotalPages(pages);
-        setData({ type: type, page: page, movies: res.data.results });
+        setData({ type: type, page: page, movies: res.data.results.filter((m) => m.poster_path) });
       })
       .catch(() => {
         setData({ type: type, page: page, movies: [] });
@@ -54,42 +55,32 @@ export function Category() {
   const title = TITLES[type] || type;
 
   return (
-    <section className="bg-black min-h-screen px-11 pt-28 pb-16">
-      <div className="container mx-auto">
-        <h2 className="text-3xl font-bold text-white mb-8">{title}</h2>
+    <Container className="min-h-screen pt-28 pb-16">
+      <h2 className="text-3xl font-bold text-white mb-8">{title}</h2>
 
-        {loading && <p className="text-white text-xl">불러오는 중...</p>}
+      {loading && <Spinner />}
 
-        {!loading && (
-          <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
-              {data.movies.map((el) => (
-                <Card key={el.id} item={el} />
-              ))}
-            </div>
+      {!loading && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            {data.movies.map((el) => (
+              <Card key={el.id} item={el} />
+            ))}
+          </div>
 
-            <div className="flex justify-center items-center gap-4 mt-12">
-              <button
-                onClick={goPrev}
-                disabled={page === 1}
-                className="px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-30 hover:bg-gray-700"
-              >
-                이전
-              </button>
-              <span className="text-white">
-                {page} / {totalPages}
-              </span>
-              <button
-                onClick={goNext}
-                disabled={page === totalPages}
-                className="px-4 py-2 bg-gray-800 text-white rounded disabled:opacity-30 hover:bg-gray-700"
-              >
-                다음
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-    </section>
+          <div className="flex justify-center items-center gap-4 mt-12">
+            <Button variant="secondary" onClick={goPrev} disabled={page === 1} className="px-4 py-2 rounded">
+              이전
+            </Button>
+            <span className="text-white">
+              {page} / {totalPages}
+            </span>
+            <Button variant="secondary" onClick={goNext} disabled={page === totalPages} className="px-4 py-2 rounded">
+              다음
+            </Button>
+          </div>
+        </>
+      )}
+    </Container>
   );
 }

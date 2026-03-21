@@ -9,43 +9,33 @@ export default function App() {
   const [popular, setPopular] = useState(null);
   const [topRated, setTopRated] = useState(null);
 
-  // 영화 데이터 3가지를 동시에 불러오기
   async function loadMovie() {
-    try {
-      const [res1, res2, res3] = await Promise.all([
-        api.get("movie/now_playing"),
-        api.get("movie/popular"),
-        api.get("movie/top_rated"),
-      ]);
-      setNow(res1.data.results);
-      setPopular(res2.data.results);
-      setTopRated(res3.data.results);
-    } finally {
-      setLoading(false);
-    }
+    const [res1, res2, res3] = await Promise.all([
+      api.get("movie/now_playing"),
+      api.get("movie/popular"),
+      api.get("movie/top_rated"),
+    ]);
+    setNow(res1.data.results.filter((m) => m.poster_path));
+    setPopular(res2.data.results.filter((m) => m.poster_path));
+    setTopRated(res3.data.results.filter((m) => m.poster_path));
   }
 
   useEffect(() => {
-    api.get("movie/now_playing").then((res) => {
-      setNow(res.data.results);
-    });
-
-    api.get("movie/popular").then((res) => {
-      setPopular(res.data.results);
-    });
-
-    api.get("movie/top_rated").then((res) => {
-      setTopRated(res.data.results);
-    });
+    loadMovie();
   }, []);
 
-  // 3개 다 불러올 때까지 로딩
   const loading = now === null || popular === null || topRated === null;
+  const ctx = {
+    now: now || [],
+    popular: popular || [],
+    topRated: topRated || [],
+    loading,
+  };
 
   return (
     <>
       <Header />
-      <Outlet context={{ now: now || [], popular: popular || [], topRated: topRated || [], loading }} />
+      <Outlet context={ctx} />
       <Footer />
     </>
   );

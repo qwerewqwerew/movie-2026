@@ -3,15 +3,11 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHeart, faStar } from "@fortawesome/free-solid-svg-icons";
 
 export function Card({ item }) {
-  // 포스터 이미지 주소 만들기
-  var poster = "https://via.placeholder.com/500x750?text=No+Image";
-  if (item.poster_path) {
-    poster = "https://image.tmdb.org/t/p/w500/" + item.poster_path;
-  }
+  const poster = `https://image.tmdb.org/t/p/w500/${item.poster_path}`;
 
   return (
     <div className="card py-10 group">
-      <Link to={"/movie/" + item.id}>
+      <Link to={`/movie/${item.id}`}>
         <div className="relative overflow-hidden rounded-md">
           <img
             className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110"
