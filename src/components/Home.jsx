@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useOutletContext, Link } from "react-router";
 import { Section } from "./Section.jsx";
-import { SkeletonSection } from "./Skeleton.jsx";
 
 export function Home() {
   const { now, popular, topRated, loading } = useOutletContext();
@@ -31,8 +30,10 @@ export function Home() {
   );
 }
 
-// 히어로 비디오 섹션
-export function VideoHero({ movie }) {
+// ──────────────────────────────────────
+// VideoHero — 히어로 비디오 섹션
+// ──────────────────────────────────────
+function VideoHero({ movie }) {
   const titleRef = useRef(null);
   const textRef = useRef(null);
 
@@ -81,6 +82,30 @@ export function VideoHero({ movie }) {
               </Link>
             </div>
           )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ──────────────────────────────────────
+// SkeletonSection — 로딩 중 뼈대 UI
+// ──────────────────────────────────────
+function SkeletonSection() {
+  return (
+    <section className="bg-black px-11 py-24">
+      <div className="container mx-auto">
+        <div className="h-10 w-48 bg-gray-800 rounded mb-8 animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="py-10">
+              <div className="w-full aspect-[2/3] bg-gray-800 rounded-md animate-pulse" />
+              <div className="mt-2 px-1 space-y-2">
+                <div className="h-6 bg-gray-800 rounded animate-pulse" />
+                <div className="h-4 w-32 bg-gray-800 rounded animate-pulse" />
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     </section>
