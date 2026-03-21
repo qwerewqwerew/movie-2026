@@ -1,14 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams } from "react-router";
-import axios from "axios";
+import api from "../api/axios";
 import { Card } from "./Card.jsx";
-
-const searchApi = axios.create({
-  baseURL: "https://api.themoviedb.org/3/",
-  params: {
-    api_key: import.meta.env.VITE_TMDB_API_KEY,
-  },
-});
 
 export function Search() {
   const [searchParams] = useSearchParams();
@@ -16,11 +9,12 @@ export function Search() {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // 검색어가 바뀔 때마다 API 호출
   useEffect(() => {
     if (!query) return;
     setLoading(true);
-    searchApi
-      .get("search/movie", { params: { query, language: "ko-KR" } })
+    api
+      .get("search/movie", { params: { query } })
       .then((res) => setResults(res.data.results))
       .catch(() => setResults([]))
       .finally(() => setLoading(false));

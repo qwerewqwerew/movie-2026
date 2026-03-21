@@ -19,7 +19,7 @@ export function Category() {
   useEffect(() => {
     setLoading(true);
     api
-      .get(type, { params: { page } })
+      .get(`movie/${type}`, { params: { page } })
       .then((res) => {
         setMovies(res.data.results);
         setTotalPages(Math.min(res.data.total_pages, 20));

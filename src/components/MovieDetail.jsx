@@ -1,26 +1,8 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router";
+import { useState, useEffect, useRef } from "react";
+import { useParams, useNavigate, Link } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faArrowLeft, faHeart as faHeartSolid, faPlay, faXmark } from "@fortawesome/free-solid-svg-icons";
-import { faHeart as faHeartRegular } from "@fortawesome/free-regular-svg-icons";
-import { Link } from "react-router";
+import { faArrowLeft, faPlay, faXmark } from "@fortawesome/free-solid-svg-icons";
 import api from "../api/axios";
-
-function getFavorites() {
-  try {
-    return JSON.parse(localStorage.getItem("favorites") || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function toggleFavorite(movie) {
-  const favs = getFavorites();
-  const exists = favs.some((f) => f.id === movie.id);
-  const next = exists ? favs.filter((f) => f.id !== movie.id) : [...favs, { id: movie.id, title: movie.title, poster_path: movie.poster_path }];
-  localStorage.setItem("favorites", JSON.stringify(next));
-  return !exists;
-}
 
 export function MovieDetail() {
   const { id } = useParams();
@@ -28,26 +10,32 @@ export function MovieDetail() {
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [isFav, setIsFav] = useState(false);
   const [trailerKey, setTrailerKey] = useState(null);
   const [showTrailer, setShowTrailer] = useState(false);
   const [cast, setCast] = useState([]);
   const [similar, setSimilar] = useState([]);
 
+  // GSAP 애니메이션을 위한 ref
+  const infoRef = useRef(null);
+  const castRef = useRef(null);
+
+  // 영화 상세 정보 불러오기
   async function loadMovieDetail() {
     try {
       const [res, videosRes, creditsRes, similarRes] = await Promise.all([
-        api.get(id),
-        api.get(`${id}/videos`),
-        api.get(`${id}/credits`),
-        api.get(`${id}/similar`),
+        api.get(`movie/${id}`),
+        api.get(`movie/${id}/videos`),
+        api.get(`movie/${id}/credits`),
+        api.get(`movie/${id}/similar`),
       ]);
       setMovie(res.data);
-      setIsFav(getFavorites().some((f) => f.id === res.data.id));
+
+      // 유튜브 예고편 찾기
       const trailer = videosRes.data.results.find(
         (v) => v.type === "Trailer" && v.site === "YouTube"
       );
       if (trailer) setTrailerKey(trailer.key);
+
       setCast(creditsRes.data.cast.slice(0, 8));
       setSimilar(similarRes.data.results.slice(0, 4));
     } catch (e) {
@@ -61,10 +49,37 @@ export function MovieDetail() {
     loadMovieDetail();
   }, [id]);
 
+  // GSAP 등장 애니메이션
+  useEffect(() => {
+    if (!movie || typeof gsap === "undefined") return;
+
+    // 영화 정보 영역 페이드인
+    gsap.from(infoRef.current, {
+      opacity: 0,
+      y: 50,
+      duration: 0.8,
+    });
+
+    // 출연진 영역 스크롤 트리거
+    if (castRef.current && typeof ScrollTrigger !== "undefined") {
+      gsap.registerPlugin(ScrollTrigger);
+      gsap.from(castRef.current.children, {
+        opacity: 0,
+        y: 30,
+        duration: 0.5,
+        stagger: 0.1,
+        scrollTrigger: {
+          trigger: castRef.current,
+          start: "top 80%",
+        },
+      });
+    }
+  }, [movie]);
+
   if (loading) {
     return (
       <div className="bg-black min-h-screen flex items-center justify-center">
-        <p className="text-white text-2xl">불러오는 중...</p>
+        <p className="text-white text-2xl animate-pulse">불러오는 중...</p>
       </div>
     );
   }
@@ -83,6 +98,7 @@ export function MovieDetail() {
 
   return (
     <div className="bg-black min-h-screen relative">
+      {/* 배경 이미지 */}
       {backdrop && (
         <div
           className="absolute inset-0 bg-cover bg-center"
@@ -92,6 +108,7 @@ export function MovieDetail() {
         </div>
       )}
 
+      {/* 영화 정보 */}
       <div className="relative pt-24 pb-16">
         <div className="container mx-auto px-6">
           <button
@@ -102,58 +119,48 @@ export function MovieDetail() {
             <span>뒤로가기</span>
           </button>
 
-          <div className="flex flex-col md:flex-row gap-10">
-          <img
-            src={`https://image.tmdb.org/t/p/w500/${movie.poster_path}`}
-            alt={movie.title}
-            className="w-full md:w-72 rounded-lg object-cover shadow-2xl"
-          />
+          <div ref={infoRef} className="flex flex-col md:flex-row gap-10">
+            <img
+              src={`https://image.tmdb.org/t/p/w500/${movie.poster_path}`}
+              alt={movie.title}
+              className="w-full md:w-72 rounded-lg object-cover shadow-2xl"
+            />
 
-          <div className="flex flex-col gap-4 text-white">
-            <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-4 text-white">
               <h1 className="text-4xl font-bold text-yellow-400">{movie.title}</h1>
-              <button
-                onClick={() => setIsFav(toggleFavorite(movie))}
-                className="text-2xl hover:scale-110 transition-transform"
-              >
-                <FontAwesomeIcon
-                  icon={isFav ? faHeartSolid : faHeartRegular}
-                  className={isFav ? "text-red-500" : "text-gray-400"}
-                />
-              </button>
+              <p className="text-gray-400 text-lg">{movie.original_title}</p>
+
+              <div className="flex gap-4 text-sm text-gray-300">
+                <span>개봉일: {movie.release_date}</span>
+                <span>러닝타임: {movie.runtime}분</span>
+              </div>
+
+              <div className="flex gap-2 flex-wrap">
+                {movie.genres.map((genre) => (
+                  <span key={genre.id} className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
+                    {genre.name}
+                  </span>
+                ))}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-yellow-400 text-xl font-bold">★ {movie.vote_average.toFixed(1)}</span>
+                <span className="text-gray-400">({movie.vote_count.toLocaleString()}명 평가)</span>
+              </div>
+
+              <p className="text-gray-300 leading-relaxed max-w-xl">{movie.overview}</p>
+
+              {/* 예고편 버튼 */}
+              {trailerKey && (
+                <button
+                  onClick={() => setShowTrailer(true)}
+                  className="mt-2 bg-red-600 hover:bg-red-500 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 w-fit transition-colors"
+                >
+                  <FontAwesomeIcon icon={faPlay} />
+                  예고편 보기
+                </button>
+              )}
             </div>
-            <p className="text-gray-400 text-lg">{movie.original_title}</p>
-
-            <div className="flex gap-4 text-sm text-gray-300">
-              <span>개봉일: {movie.release_date}</span>
-              <span>러닝타임: {movie.runtime}분</span>
-            </div>
-
-            <div className="flex gap-2 flex-wrap">
-              {movie.genres.map((genre) => (
-                <span key={genre.id} className="bg-yellow-400 text-black px-3 py-1 rounded-full text-sm font-bold">
-                  {genre.name}
-                </span>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-yellow-400 text-xl font-bold">★ {movie.vote_average.toFixed(1)}</span>
-              <span className="text-gray-400">({movie.vote_count.toLocaleString()}명 평가)</span>
-            </div>
-
-            <p className="text-gray-300 leading-relaxed max-w-xl">{movie.overview}</p>
-
-            {trailerKey && (
-              <button
-                onClick={() => setShowTrailer(true)}
-                className="mt-2 bg-red-600 hover:bg-red-500 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 w-fit transition-colors"
-              >
-                <FontAwesomeIcon icon={faPlay} />
-                예고편 보기
-              </button>
-            )}
-          </div>
           </div>
         </div>
       </div>
@@ -163,7 +170,7 @@ export function MovieDetail() {
         <div className="relative bg-black/60 py-12">
           <div className="container mx-auto px-6">
             <h2 className="text-2xl font-bold text-white mb-6">출연진</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
+            <div ref={castRef} className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
               {cast.map((actor) => (
                 <div key={actor.id} className="text-center">
                   <img
