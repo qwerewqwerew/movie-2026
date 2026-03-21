@@ -7,60 +7,38 @@ import api from "../api/axios";
 export function MovieDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  // state 3개만 사용 — movie 안에 videos, credits, similar 전부 들어옴
   const [movie, setMovie] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  const [trailerKey, setTrailerKey] = useState(null);
   const [showTrailer, setShowTrailer] = useState(false);
-  const [cast, setCast] = useState([]);
-  const [similar, setSimilar] = useState([]);
 
-  // GSAP 애니메이션을 위한 ref
+  // GSAP 애니메이션용 ref
   const infoRef = useRef(null);
   const castRef = useRef(null);
 
-  // 영화 상세 정보 불러오기
-  async function loadMovieDetail() {
-    try {
-      const [res, videosRes, creditsRes, similarRes] = await Promise.all([
-        api.get(`movie/${id}`),
-        api.get(`movie/${id}/videos`),
-        api.get(`movie/${id}/credits`),
-        api.get(`movie/${id}/similar`),
-      ]);
-      setMovie(res.data);
-
-      // 유튜브 예고편 찾기
-      const trailer = videosRes.data.results.find(
-        (v) => v.type === "Trailer" && v.site === "YouTube"
-      );
-      if (trailer) setTrailerKey(trailer.key);
-
-      setCast(creditsRes.data.cast.slice(0, 8));
-      setSimilar(similarRes.data.results.slice(0, 4));
-    } catch (e) {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }
-
+  // append_to_response를 쓰면 API 1번으로 영화+영상+출연진+비슷한영화를 한꺼번에 받아옴
   useEffect(() => {
-    loadMovieDetail();
+    setLoading(true);
+    api
+      .get(`movie/${id}`, {
+        params: { append_to_response: "videos,credits,similar" },
+      })
+      .then((res) => setMovie(res.data))
+      .catch(() => setMovie(null))
+      .finally(() => setLoading(false));
   }, [id]);
 
   // GSAP 등장 애니메이션
   useEffect(() => {
     if (!movie || typeof gsap === "undefined") return;
 
-    // 영화 정보 영역 페이드인
     gsap.from(infoRef.current, {
       opacity: 0,
       y: 50,
       duration: 0.8,
     });
 
-    // 출연진 영역 스크롤 트리거
     if (castRef.current && typeof ScrollTrigger !== "undefined") {
       gsap.registerPlugin(ScrollTrigger);
       gsap.from(castRef.current.children, {
@@ -76,6 +54,7 @@ export function MovieDetail() {
     }
   }, [movie]);
 
+  // --- 로딩 / 에러 화면 ---
   if (loading) {
     return (
       <div className="bg-black min-h-screen flex items-center justify-center">
@@ -84,7 +63,7 @@ export function MovieDetail() {
     );
   }
 
-  if (error) {
+  if (!movie) {
     return (
       <div className="bg-black min-h-screen flex items-center justify-center">
         <p className="text-red-400 text-2xl">영화 정보를 불러오지 못했습니다.</p>
@@ -92,9 +71,21 @@ export function MovieDetail() {
     );
   }
 
+  // --- movie 하나에서 필요한 데이터 꺼내기 ---
   const backdrop = movie.backdrop_path
     ? `https://image.tmdb.org/t/p/original/${movie.backdrop_path}`
     : null;
+
+  // 유튜브 예고편 찾기
+  const trailer = movie.videos?.results?.find(
+    (v) => v.type === "Trailer" && v.site === "YouTube"
+  );
+
+  // 출연진 8명만
+  const cast = movie.credits?.cast?.slice(0, 8) || [];
+
+  // 비슷한 영화 4개만
+  const similar = movie.similar?.results?.slice(0, 4) || [];
 
   return (
     <div className="bg-black min-h-screen relative">
@@ -151,7 +142,7 @@ export function MovieDetail() {
               <p className="text-gray-300 leading-relaxed max-w-xl">{movie.overview}</p>
 
               {/* 예고편 버튼 */}
-              {trailerKey && (
+              {trailer && (
                 <button
                   onClick={() => setShowTrailer(true)}
                   className="mt-2 bg-red-600 hover:bg-red-500 text-white px-6 py-3 rounded-lg inline-flex items-center gap-2 w-fit transition-colors"
@@ -220,7 +211,7 @@ export function MovieDetail() {
       )}
 
       {/* 트레일러 모달 */}
-      {showTrailer && trailerKey && (
+      {showTrailer && trailer && (
         <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
           <div className="relative w-full max-w-4xl aspect-video">
             <button
@@ -231,7 +222,7 @@ export function MovieDetail() {
             </button>
             <iframe
               className="w-full h-full rounded-lg"
-              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1`}
+              src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1`}
               title="Trailer"
               allow="autoplay; encrypted-media"
               allowFullScreen
