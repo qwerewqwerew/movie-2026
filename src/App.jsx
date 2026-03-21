@@ -11,17 +11,17 @@ export default function App() {
   const [topRated, setTopRated] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 영화 데이터 3가지를 동시에 불러오기
+  // 영화 데이터 3가지를 동시에 불러오기 (각각 독립적으로 실패 허용)
   async function loadMovie() {
     try {
-      const [res1, res2, res3] = await Promise.all([
+      const [res1, res2, res3] = await Promise.allSettled([
         api.get("movie/now_playing"),
         api.get("movie/popular"),
         api.get("movie/top_rated"),
       ]);
-      setNow(res1.data.results);
-      setPopular(res2.data.results);
-      setTopRated(res3.data.results);
+      if (res1.status === "fulfilled") setNow(res1.value.data.results);
+      if (res2.status === "fulfilled") setPopular(res2.value.data.results);
+      if (res3.status === "fulfilled") setTopRated(res3.value.data.results);
     } finally {
       setLoading(false);
     }

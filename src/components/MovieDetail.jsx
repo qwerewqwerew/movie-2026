@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faArrowLeft, faPlay, faXmark } from "@fortawesome/free-solid-svg-icons";
@@ -11,66 +11,32 @@ export function MovieDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  // state 3개만 사용 — movie 안에 videos, credits, similar 전부 들어옴
-  const [movie, setMovie] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [showTrailer, setShowTrailer] = useState(false);
-
-  // GSAP 애니메이션용 ref
-  const infoRef = useRef(null);
-  const castRef = useRef(null);
+  // state — movie 안에 videos, credits, similar 전부 들어옴
+  // showTrailer도 같이 관리하여 id 변경 시 자동 초기화
+  const [state, setState] = useState({ id: null, movie: null, loading: true, showTrailer: false });
 
   // append_to_response를 쓰면 API 1번으로 영화+영상+출연진+비슷한영화를 한꺼번에 받아옴
   useEffect(() => {
-    setLoading(true);
-    setShowTrailer(false);
+    let cancelled = false;
     api
       .get(`movie/${id}`, {
         params: { append_to_response: "videos,credits,similar" },
       })
-      .then((res) => setMovie(res.data))
-      .catch(() => setMovie(null))
-      .finally(() => setLoading(false));
+      .then((res) => {
+        if (!cancelled) setState({ id, movie: res.data, loading: false, showTrailer: false });
+      })
+      .catch(() => {
+        if (!cancelled) setState({ id, movie: null, loading: false, showTrailer: false });
+      });
+
+    return () => { cancelled = true; };
   }, [id]);
 
-  // GSAP 등장 애니메이션
-  useEffect(() => {
-    if (!movie || typeof gsap === "undefined") return;
-
-    const anims = [];
-
-    // 영화 정보 영역 페이드인
-    if (infoRef.current) {
-      anims.push(
-        gsap.from(infoRef.current, { opacity: 0, y: 50, duration: 0.8 })
-      );
-    }
-
-    // 출연진 영역 스크롤 트리거
-    if (castRef.current && typeof ScrollTrigger !== "undefined") {
-      gsap.registerPlugin(ScrollTrigger);
-      anims.push(
-        gsap.from(castRef.current.children, {
-          opacity: 0,
-          y: 30,
-          duration: 0.5,
-          stagger: 0.1,
-          scrollTrigger: {
-            trigger: castRef.current,
-            start: "top 80%",
-          },
-        })
-      );
-    }
-
-    // 페이지 이동 시 애니메이션 정리
-    return () => {
-      anims.forEach((a) => {
-        a.scrollTrigger?.kill();
-        a.kill();
-      });
-    };
-  }, [movie]);
+  // id가 바뀌었는데 아직 데이터 안 옴 → 로딩 상태
+  const loading = state.id !== id || state.loading;
+  const movie = state.id === id ? state.movie : null;
+  const showTrailer = state.id === id && state.showTrailer;
+  const setShowTrailer = (val) => setState((s) => ({ ...s, showTrailer: val }));
 
   // --- 로딩 / 에러 화면 ---
   if (loading) {
@@ -135,7 +101,7 @@ export function MovieDetail() {
             <span>뒤로가기</span>
           </button>
 
-          <div ref={infoRef} className="flex flex-col md:flex-row gap-10">
+          <div className="flex flex-col md:flex-row gap-10">
             <img
               src={poster}
               alt={movie.title}
@@ -192,7 +158,7 @@ export function MovieDetail() {
         <div className="relative bg-black/60 py-12">
           <div className="container mx-auto px-6">
             <h2 className="text-2xl font-bold text-white mb-6">출연진</h2>
-            <div ref={castRef} className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
               {cast.map((actor) => (
                 <div key={actor.id} className="text-center">
                   <img

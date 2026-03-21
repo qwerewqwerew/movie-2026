@@ -1,17 +1,16 @@
-import { useEffect, useRef, useState } from "react";
 import { useOutletContext, Link } from "react-router";
 import { Section } from "./Section.jsx";
+
+// 모듈 수준에서 랜덤 인덱스 고정 (렌더 중 불순 함수 호출 방지)
+const HERO_INDEX = Math.floor(Math.random() * 5);
 
 export function Home() {
   const { now, popular, topRated, loading } = useOutletContext();
 
-  // 인기영화 중 랜덤 1개를 히어로에 표시 (최초 1회만 선택)
-  const [hero, setHero] = useState(null);
-  useEffect(() => {
-    if (popular.length > 0 && !hero) {
-      setHero(popular[Math.floor(Math.random() * Math.min(5, popular.length))]);
-    }
-  }, [popular]);
+  // 인기영화 중 고정 인덱스로 히어로 선택
+  const hero = popular.length > 0
+    ? popular[HERO_INDEX % popular.length]
+    : null;
 
   return (
     <>
@@ -37,33 +36,6 @@ export function Home() {
 // VideoHero — 히어로 비디오 섹션
 // ──────────────────────────────────────
 function VideoHero({ movie }) {
-  const titleRef = useRef(null);
-  const textRef = useRef(null);
-
-  // GSAP으로 텍스트 등장 애니메이션
-  useEffect(() => {
-    if (typeof gsap === "undefined") return;
-
-    const a1 = gsap.from(titleRef.current, {
-      opacity: 0,
-      y: -50,
-      duration: 1,
-      delay: 0.3,
-    });
-
-    const a2 = gsap.from(textRef.current, {
-      opacity: 0,
-      y: 30,
-      duration: 1,
-      delay: 0.6,
-    });
-
-    return () => {
-      a1.kill();
-      a2.kill();
-    };
-  }, []);
-
   return (
     <section className="relative h-screen overflow-hidden">
       <video
@@ -73,10 +45,10 @@ function VideoHero({ movie }) {
       />
       <div className="absolute bg-black/50 w-full h-full top-0 left-0"></div>
       <div className="relative container mx-auto flex flex-col justify-center items-center h-full text-center px-6">
-        <h2 ref={titleRef} className="text-5xl md:text-7xl lg:text-9xl font-bold text-yellow-400">
+        <h2 className="text-5xl md:text-7xl lg:text-9xl font-bold text-yellow-400">
           GOFLEX
         </h2>
-        <div ref={textRef}>
+        <div>
           <p className="text-xl md:text-2xl text-white mt-4">최신 영화와 인기 작품을 만나보세요.</p>
           {movie && (
             <div className="mt-8 flex flex-col items-center gap-3">
