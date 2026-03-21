@@ -3,14 +3,12 @@ import { Link, useNavigate } from "react-router";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHouse, faMagnifyingGlass, faBars, faXmark } from "@fortawesome/free-solid-svg-icons";
 
-// Header — 상단 네비게이션 바
 export function Header() {
   const [query, setQuery] = useState("");
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  // 스크롤 위치에 따라 헤더 배경 변경
   useEffect(() => {
     function handleScroll() {
       setScrolled(window.scrollY > 50);
@@ -19,12 +17,11 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // 검색 폼 제출
   function handleSearch(e) {
     e.preventDefault();
     const trimmed = query.trim();
     if (!trimmed) return;
-    navigate(`/search?q=${encodeURIComponent(trimmed)}`);
+    navigate("/search?q=" + encodeURIComponent(trimmed));
     setQuery("");
     setMenuOpen(false);
   }
@@ -40,7 +37,6 @@ export function Header() {
           <span className="text-2xl font-bold text-yellow-400">GOFLEX</span>
         </Link>
 
-        {/* 모바일 햄버거 버튼 */}
         <button
           className="md:hidden text-white text-xl"
           onClick={() => setMenuOpen(!menuOpen)}
@@ -48,7 +44,6 @@ export function Header() {
           <FontAwesomeIcon icon={menuOpen ? faXmark : faBars} />
         </button>
 
-        {/* 데스크톱 네비게이션 */}
         <div className="hidden md:flex items-center gap-4">
           <form onSubmit={handleSearch} className="flex items-center">
             <input
@@ -69,7 +64,6 @@ export function Header() {
         </div>
       </div>
 
-      {/* 모바일 메뉴 */}
       {menuOpen && (
         <div className="md:hidden bg-black/95 px-6 pb-4 flex flex-col gap-4">
           <form onSubmit={handleSearch} className="flex items-center">
