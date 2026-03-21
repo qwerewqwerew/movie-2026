@@ -9,7 +9,7 @@ export function Section({ title, items, category }) {
           <h2 className="text-4xl font-bold text-white">{title}</h2>
           {category && (
             <Link
-              to={`/category/${category}`}
+              to={"/category/" + category}
               className="text-yellow-400 hover:text-yellow-300 text-sm font-bold"
             >
               더보기 &rarr;

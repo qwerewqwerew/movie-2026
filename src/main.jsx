@@ -11,9 +11,7 @@ import { Category } from "./components/Category.jsx";
 
 import { createBrowserRouter, RouterProvider } from "react-router";
 
-// ──────────────────────────────────────
-// 라우터 설정
-// ──────────────────────────────────────
+// 페이지 경로 설정
 const router = createBrowserRouter([
   {
     path: "/",
