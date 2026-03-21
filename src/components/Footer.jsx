@@ -4,9 +4,6 @@ export function Footer() {
     <footer className="bg-black border-t border-gray-800 py-8">
       <div className="container mx-auto px-6 text-center">
         <span className="text-xl font-bold text-yellow-400">GOFLEX</span>
-        <p className="text-gray-500 text-sm mt-2">
-          이 사이트는 TMDB API를 사용하며, TMDB의 승인 또는 인증을 받지 않았습니다.
-        </p>
         <p className="text-gray-600 text-xs mt-4">© 2026 GOFLEX. All rights reserved.</p>
       </div>
     </footer>

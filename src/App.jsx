@@ -22,6 +22,8 @@ export default function App() {
       setNow(res1.data.results);
       setPopular(res2.data.results);
       setTopRated(res3.data.results);
+    } catch (err) {
+      console.error("영화 데이터 로드 실패:", err);
     } finally {
       setLoading(false);
     }
