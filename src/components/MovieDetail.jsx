@@ -122,10 +122,10 @@ export function MovieDetail() {
 
               <div className="flex items-center gap-2">
                 <span className="text-yellow-400 text-xl font-bold">
-                  ★ {movie.vote_average || 0}
+                  ★ {(movie.vote_average || 0).toFixed(1)}
                 </span>
                 <span className="text-gray-400">
-                  ({movie.vote_count || 0}명 평가)
+                  ({(movie.vote_count || 0).toLocaleString()}명 평가)
                 </span>
               </div>
 
@@ -188,7 +188,7 @@ export function MovieDetail() {
                       <img src={img} alt={m.title} className="w-full aspect-[2/3] object-cover transition-transform duration-300 group-hover:scale-105" />
                     </div>
                     <p className="text-white font-bold mt-2 truncate">{m.title}</p>
-                    <p className="text-yellow-400 text-sm">★ {m.vote_average || 0}</p>
+                    <p className="text-yellow-400 text-sm">★ {(m.vote_average || 0).toFixed(1)}</p>
                   </Link>
                 );
               })}

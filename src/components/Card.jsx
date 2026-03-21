@@ -22,7 +22,7 @@ export function Card({ item }) {
             <p className="text-white text-sm line-clamp-3">{item.overview}</p>
             <div className="flex items-center gap-1 mt-2 text-yellow-400">
               <FontAwesomeIcon icon={faStar} className="text-xs" />
-              <span className="text-sm font-bold">{item.vote_average}</span>
+              <span className="text-sm font-bold">{(item.vote_average || 0).toFixed(1)}</span>
             </div>
           </div>
         </div>
@@ -32,7 +32,7 @@ export function Card({ item }) {
           </h4>
           <span className="flex items-center gap-2 font-bold text-yellow-500">
             <FontAwesomeIcon icon={faHeart} />
-            <span>{item.vote_average}</span>
+            <span>{(item.vote_average || 0).toFixed(1)}</span>
             <span className="font-medium text-gray-400">
               {item.release_date}
             </span>
